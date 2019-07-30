@@ -1,4 +1,4 @@
-# YACLC
+# YAACLC
 Yet Another ACL Compiler
 
 Yaaclc stands in the shoulder of aclc and is an atempt to improve the compiler characteristics of aclc. Yaaclc needs to give syntax warnings and compilation errors.
