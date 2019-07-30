@@ -1,0 +1,14 @@
+<program> = "program", <white space>, <name statement>, {statement}, "end"
+<statement> = <variable_def> | <attribution> | <control_statement> | <command> | <position_def>
+<variable_def> = ("define"|"global"), <white space>, <variable_name>, <end line> 
+		| ("dim"|"dimg"), <white space>, <variable_name>, "[", <integer>, "]", <end line>
+<var_positon_def> = ("DEFP" | "DEFP", <letter>), <white space>, <variable_name>, <white space> , [ <integer> ] 
+		|("DIMP" | "DIMP", <letter>), <white space>, <variable_name>, <vector_indicator>, <white space> , [ <integer> ]
+
+<variable_name> = <letter>, {letter}
+<vector_indicator> = "[" , <integer>, "]"
+
+<attribution> = "SET", <white space>, <variable_name>, [vector_indicator], "=", <value>
+<value> = <integer> | <string> | <expression>
+
+<pos_attribution> = "
