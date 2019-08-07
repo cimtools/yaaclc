@@ -104,8 +104,9 @@ vector<string> get_token( ifstream * myfile ){
         return_vector.push_back("INDEX");
 
     }else if( c == '\n' || c == 42){
-        token = "New Line Token";
+        token += c;
         while( c == '\n' || c == 42){
+            token += c;
             c = myfile->get();
         }
         myfile->unget();
@@ -114,13 +115,14 @@ vector<string> get_token( ifstream * myfile ){
         return_vector.push_back("NEW LINE");
 
     }else if( c == EOF){
-
+        token += c;
         return_vector.push_back(token);
         return_vector.push_back("END");
 
     }else if( c == ' ' || c == '\t' ){
-        token = "White Space";
+        token += c;
         while( c==' ' || c == '\t' ){
+            token += c;
             c = myfile->get();
         }
         myfile->unget();
@@ -145,8 +147,8 @@ int main(){
     
     if (myfile.is_open()){
        vector<string> token_readed = get_token(&myfile); 
-       // while(token_readed.at(0) != "END"){
-           for(int i =0; i< 40;i++){
+        while(token_readed.at(1) != "END"){
+           //for(int i =0; i< 40;i++){
             cout << token_readed.at(0) << endl;
             token_readed = get_token(&myfile);
         }
