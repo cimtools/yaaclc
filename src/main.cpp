@@ -29,6 +29,7 @@ vector<string> get_token( ifstream * myfile ){
     vector<string> return_vector;
     string token;
     char c = myfile->get();
+
     if( is_letter(c) ){ 
         token += c;
         c = myfile->get();
@@ -68,13 +69,13 @@ vector<string> get_token( ifstream * myfile ){
     }else if( c == '"' ){
         token += c;
         c = myfile->get();
-        while( is_letter(c) || is_number(c) || is_operator(c) || c == ' ' ){
+        while( (c >= 35 && c <= 126) || c == 33 || c == 32 ){
             token += c;
             c = myfile->get();
         }
         if( c!= '"' ){
             //THROW ERROR
-            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!" << (int)c << "  " << token << endl;
             token = c;
             return_vector.push_back(token);
             return_vector.push_back("ERROR");            
@@ -148,14 +149,12 @@ int main(){
     if (myfile.is_open()){
        vector<string> token_readed = get_token(&myfile); 
         while(token_readed.at(1) != "END"){
-           //for(int i =0; i< 40;i++){
             cout << token_readed.at(0) << endl;
             token_readed = get_token(&myfile);
         }
         myfile.close();
     }
     else cout << "Unable to open file"; 
-    
 
     return 0;
 }
