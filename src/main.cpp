@@ -10,12 +10,17 @@ using namespace std;
 // var lista de rotinas
 // var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
 
+inline bool is_letter( char c )__attribute__((always_inline));
 inline bool is_letter( char c ){
     return ( ( c >= 65 ) && (c <= 90 ) ) || ( ( c >= 97) && ( c <= 122 ) ) ;
 }
+
+inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
     return c >= 48 && c <= 57 ;
+
 }
+inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
     return c == '<' || c == '>' || c == '=' || c == '&' || c == '+' || c == '-' || c == '/' || c == '.';
 }
@@ -136,12 +141,12 @@ vector<string> get_token( ifstream * myfile ){
 }
 
 int main(){
-    cout << "haha";
     ifstream myfile ("prog.dnl");
     
     if (myfile.is_open()){
        vector<string> token_readed = get_token(&myfile); 
-        while(token_readed.at(0) != "END"){
+       // while(token_readed.at(0) != "END"){
+           for(int i =0; i< 40;i++){
             cout << token_readed.at(0) << endl;
             token_readed = get_token(&myfile);
         }
