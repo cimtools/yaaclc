@@ -136,6 +136,7 @@ vector<string> get_token( ifstream * myfile ){
 }
 
 int main(){
+    cout << "haha";
     ifstream myfile ("prog.dnl");
     
     if (myfile.is_open()){
