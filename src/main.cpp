@@ -11,34 +11,52 @@ using namespace std;
 // var lista de rotinas
 // var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
 
+/* 
+ *  @brief Bloco responsável para o interpretador entender o que é uma letra  
+*/
 inline bool is_letter( char c )__attribute__((always_inline));
 inline bool is_letter( char c ){
     return ( ( c >= 65 ) && (c <= 90 ) ) || ( ( c >= 97) && ( c <= 122 ) ) ;
 }
 
+/* 
+ *  @brief Bloco responsável para o interpretador entender o que é um número, ou seja, através dele
+ *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. 
+ */
 inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
     return c >= 48 && c <= 57 ;
 }
 
+/* 
+ *  @brief Bloco responsável para o interpretador entender o que é um operador 
+ */
 inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
     return c == '<' || c == '>' || c == '=' || c == '&' || c == '+' || c == '-' || c == '/' || c == '.';
 }
+
+/* 
+ *   @brief Bloco responsável para identificar quando uma string é permitida
+ */
 inline bool is_allowed_in_string( char c )__attribute__((always_inline));
 inline bool is_allowed_in_string( char c ){
     return c >= 32 && c <= 126 && c != 34;
 }
-
+/*
+ *  @brief Lista de comandos aceitos pelo interpretador
+ */
 const set<string> commands = {"dimg" , "program", "dodin", "dim", "define", "for", "set", "end", "global"};
 
+/*
+ *  @brief
+ */
 vector<string> get_token( ifstream * myfile ){
     vector<string> return_vector;
     string token;
     char c = myfile->peek();
 
-    while( c == 42 ){
-        myfile->get();
+    while( c == 42 ){ //atenção yuri
         do{
            myfile->get();
         }while( myfile->peek() != '\n' );
@@ -77,8 +95,9 @@ vector<string> get_token( ifstream * myfile ){
 
     }else if( c == '"' ){
         do{
+            //atenção yuri
             token += myfile->get();
-        }while( is_allowed_in_string(myfile->peek()) );
+        }while( is_allowed_in_string(myfile->peek()||token.size()>= 40) );
         if( myfile->peek()!= '"' ){
             //THROW ERROR
             cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
