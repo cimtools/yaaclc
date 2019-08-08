@@ -46,22 +46,19 @@ vector<string> get_token( ifstream * myfile ){
     }
 
     if( is_letter(c) ){ 
-        token += myfile->get();
-        c = myfile->peek();
-        while( is_letter(c) || is_number(c) ){
+        do{
             token += myfile->get();
             c = myfile->peek();
-        }
+        }while( is_letter(c) || is_number(c) );
 
         return_vector.push_back(token);
 
-        auto it = commands.find(token);
-        if( it != commands.end() ){
+        if( commands.find(token) != commands.end() ){
             return_vector.push_back("COMMAND");
         }else{
             return_vector.push_back("WORD");
         }
-        
+
     }else if( is_number(c) ){ 
         do{
             token += myfile->get();
