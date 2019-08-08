@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 using namespace std;
 
@@ -38,7 +39,6 @@ vector<string> get_token( ifstream * myfile ){
     char c = myfile->peek();
 
     while( c == 42 ){
-        myfile->get();
         do{
            myfile->get();
         }while( myfile->peek() != '\n' );
