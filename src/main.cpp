@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -18,118 +19,122 @@ inline bool is_letter( char c ){
 inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
     return c >= 48 && c <= 57 ;
-
 }
+
 inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
     return c == '<' || c == '>' || c == '=' || c == '&' || c == '+' || c == '-' || c == '/' || c == '.';
 }
+inline bool is_allowed_in_string( char c )__attribute__((always_inline));
+inline bool is_allowed_in_string( char c ){
+    return c >= 32 && c <= 126 && c != 34;
+}
+
+const set<string> commands = {"dimg" , "program", "dodin", "dim", "define", "for", "set", "end", "global"};
 
 vector<string> get_token( ifstream * myfile ){
     vector<string> return_vector;
     string token;
-    char c = myfile->get();
+    char c = myfile->peek();
+
+    while( c == 42 ){
+        myfile->get();
+        do{
+           myfile->get();
+        }while( myfile->peek() != '\n' );
+        c = myfile->peek();
+    }
 
     if( is_letter(c) ){ 
-        token += c;
-        c = myfile->get();
+        token += myfile->get();
+        c = myfile->peek();
         while( is_letter(c) || is_number(c) ){
-            token += c;
-            c = myfile->get();
+            token += myfile->get();
+            c = myfile->peek();
         }
-        myfile->unget();
 
         return_vector.push_back(token);
-        return_vector.push_back("WORD");
 
-    }else if( is_number(c) ){ 
-        token += c;
-        c = myfile->get();
-        while( is_number(c) ){
-            token += c;
-            c = myfile->get();
+        auto it = commands.find(token);
+        if( it != commands.end() ){
+            return_vector.push_back("COMMAND");
+        }else{
+            return_vector.push_back("WORD");
         }
-        myfile->unget();
+        
+    }else if( is_number(c) ){ 
+        do{
+            token += myfile->get();
+        }while( is_number(myfile->peek()) );
 
         return_vector.push_back(token);
         return_vector.push_back("NUMBER");
 
     }else if( is_operator(c) ){ 
-        token += c;
-        c = myfile->get();
-        while( is_operator(c) ){
-            token += c;
-            c = myfile->get();
-        }
-        myfile->unget();
+        do{
+            token += myfile->get();
+        }while( is_operator(myfile->peek()) );
 
         return_vector.push_back(token);
         return_vector.push_back("OPERATOR");
 
     }else if( c == '"' ){
-        token += c;
-        c = myfile->get();
-        while( (c >= 35 && c <= 126) || c == 33 || c == 32 ){
-            token += c;
-            c = myfile->get();
-        }
-        if( c!= '"' ){
+        do{
+            token += myfile->get();
+        }while( is_allowed_in_string(myfile->peek()) );
+        if( myfile->peek()!= '"' ){
             //THROW ERROR
-            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!" << (int)c << "  " << token << endl;
-            token = c;
+            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+            token = myfile->peek();
             return_vector.push_back(token);
-            return_vector.push_back("ERROR");            
+            return_vector.push_back("ERROR");     
+            return return_vector;       
+        }else{
+            token+=myfile->get();
         }
-        token += c;
 
         return_vector.push_back(token);
         return_vector.push_back("STRING");
 
     }else if( c == '[' ){
-        token += c;
-        c = myfile->get();
-        while( is_number(c) ){
-            token += c;
-            c = myfile->get();
-        }
-        if( c != ']'){
+        do{
+            token += myfile->get();
+        }while( is_number(myfile->peek()));
+        if( myfile->peek() != ']'){
             //THROW ERROR
             cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            token = c;
+            token = myfile->peek();
             return_vector.push_back(token);
             return_vector.push_back("ERROR");
+            return return_vector;
+        }else{
+            token += myfile->get();
         }
-        token += c;
 
         return_vector.push_back(token);
         return_vector.push_back("INDEX");
 
-    }else if( c == '\n' || c == 42){
-        token += c;
-        while( c == '\n' || c == 42){
-            token += c;
-            c = myfile->get();
-        }
-        myfile->unget();
+    }else if( c == '\n'  ){
+        do{
+            token += myfile->get();
+        }while( myfile->peek() == '\n' );
 
         return_vector.push_back(token);
         return_vector.push_back("NEW LINE");
 
     }else if( c == EOF){
-        token += c;
-        return_vector.push_back(token);
+        return_vector.push_back("");
         return_vector.push_back("END");
+        return return_vector;
 
     }else if( c == ' ' || c == '\t' ){
-        token += c;
-        while( c==' ' || c == '\t' ){
-            token += c;
-            c = myfile->get();
-        }
-        myfile->unget();
+        do{
+            token += myfile->get();
+            c = myfile->peek();
+        }while( c==' ' || c == '\t' );
 
         return_vector.push_back(token);
-        return_vector.push_back("White Space");
+        return_vector.push_back("WHITE SPACE");
 
     }else{
         cout<< "None of the above!!     :  " << (int)c ;
@@ -145,13 +150,14 @@ vector<string> get_token( ifstream * myfile ){
 
 int main(){
     ifstream myfile ("prog.dnl");
-    
+    string line;
     if (myfile.is_open()){
-       vector<string> token_readed = get_token(&myfile); 
-        while(token_readed.at(1) != "END"){
-            cout << token_readed.at(0) << endl;
+        vector<string> token_readed = get_token(&myfile); 
+        do{
+            if(token_readed.at(1) != "NEW LINE" )
+            cout << token_readed.at(0)<<endl;
             token_readed = get_token(&myfile);
-        }
+        }while(token_readed.at(1)!="END");
         myfile.close();
     }
     else cout << "Unable to open file"; 
