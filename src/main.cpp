@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
+#include <list>
 
 using namespace std;
 
@@ -52,16 +54,33 @@ inline bool is_allowed_in_string( char c ){
  */
 const set<string> commands = {"dimg" , "program", "dodin", "dim", "define", "for", "set", "end", "global"};
 
+class Analizer_ACL{
+public:
+    Analizer_ACL();
+    //list<map<string,string>> scopes;
+    //vector<string,string> token_vector;
+    vector<string> get_token();
+
+    ifstream * myfile;
+
+};
+
+Analizer_ACL::Analizer_ACL(){
+    myfile = new ifstream( "prog.dnl" );
+    //myfile->open;
+}
+
 /*
  *  @brief
  *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
  */
-vector<string> get_token( ifstream * myfile ){
+vector<string> Analizer_ACL::get_token(){
     vector<string> return_vector;
     string token;
     char c = myfile->peek();
 
     while( c == 42 ){ 
+
         do{
            myfile->get();
         }while( myfile->peek() != '\n' );
@@ -101,7 +120,7 @@ vector<string> get_token( ifstream * myfile ){
     }else if( c == '"' ){
         do{
             token += myfile->get();
-        }while( is_allowed_in_string(myfile->peek()||token.size()>= 40) );
+        }while( is_allowed_in_string(myfile->peek() ) && token.size()<= 40 );
         if( myfile->peek()!= '"' ){
             //THROW ERROR
             cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -168,19 +187,27 @@ vector<string> get_token( ifstream * myfile ){
     return return_vector; 
 }
 
-int main(){
-    ifstream myfile ("prog.dnl");
-    string line;
-    if (myfile.is_open()){
-        vector<string> token_readed = get_token(&myfile); 
-        do{
-            if(token_readed.at(1) != "NEW LINE" )
-            cout << token_readed.at(0)<<endl;
-            token_readed = get_token(&myfile);
-        }while(token_readed.at(1)!="END");
-        myfile.close();
-    }
-    else cout << "Unable to open file"; 
+// void lexer( vector<string> token ){
+//     if( token.at(1) == "COMMAND" ){
+//         if( token.at(0) == "dimg" ){
+//         if( token.at(1) == "WHITE SPACE" ){     
+//         if( token.at(1) == "WORD" ){
 
+//         }
+//         }
+//         }
+//     }
+// }
+
+int main(){
+    Analizer_ACL analizer;
+    vector<string> leitura;
+
+    if( analizer.myfile->is_open() ){
+        for( int i =0; i<300; ++i ){
+            leitura = analizer.get_token();
+            cout<< leitura[0];
+        };
+    }
     return 0;
 }
