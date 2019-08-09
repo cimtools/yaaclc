@@ -12,7 +12,8 @@ using namespace std;
 // var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
 
 /* 
- *  @brief Bloco responsável para o interpretador entender o que é uma letra  
+ *  @brief Bloco responsável para o interpretador entender o que é uma letra 
+ *  @param char c é o parâmetro que será testado pelo is_letter 
 */
 inline bool is_letter( char c )__attribute__((always_inline));
 inline bool is_letter( char c ){
@@ -21,7 +22,8 @@ inline bool is_letter( char c ){
 
 /* 
  *  @brief Bloco responsável para o interpretador entender o que é um número, ou seja, através dele
- *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. 
+ *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. .
+ *  @param char c é o parâmetro que será testado pelo is_number.
  */
 inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
@@ -30,6 +32,7 @@ inline bool is_number( char c ){
 
 /* 
  *  @brief Bloco responsável para o interpretador entender o que é um operador 
+ *  @param char c é o parâmetro que será testao pelo is_operator
  */
 inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
@@ -37,7 +40,8 @@ inline bool is_operator( char c ){
 }
 
 /* 
- *   @brief Bloco responsável para identificar quando uma string é permitida
+ *  @brief Bloco responsável para identificar quando uma string é permitida
+ *  @param char c é o parâmetro que será testado pelo is_allowed_in_string  
  */
 inline bool is_allowed_in_string( char c )__attribute__((always_inline));
 inline bool is_allowed_in_string( char c ){
@@ -50,13 +54,14 @@ const set<string> commands = {"dimg" , "program", "dodin", "dim", "define", "for
 
 /*
  *  @brief
+ *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
  */
 vector<string> get_token( ifstream * myfile ){
     vector<string> return_vector;
     string token;
     char c = myfile->peek();
 
-    while( c == 42 ){ //atenção yuri
+    while( c == 42 ){ 
         do{
            myfile->get();
         }while( myfile->peek() != '\n' );
@@ -95,7 +100,6 @@ vector<string> get_token( ifstream * myfile ){
 
     }else if( c == '"' ){
         do{
-            //atenção yuri
             token += myfile->get();
         }while( is_allowed_in_string(myfile->peek()||token.size()>= 40) );
         if( myfile->peek()!= '"' ){
