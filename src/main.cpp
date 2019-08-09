@@ -12,6 +12,10 @@ using namespace std;
 // var lista de variaveis
 // var lista de rotinas
 // var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
+struct Token{
+    string content;
+    string type;
+};
 
 /* 
  *  @brief Bloco responsável para o interpretador entender o que é uma letra  
@@ -55,7 +59,7 @@ public:
     Analizer_ACL();
     //list<map<string,string>> scopes;
     //vector<string,string> token_vector;
-    vector<string> get_token();
+   Token get_token();
 
     ifstream * myfile;
 
@@ -69,8 +73,8 @@ Analizer_ACL::Analizer_ACL(){
 /*
  *  @brief
  */
-vector<string> Analizer_ACL::get_token(){
-    vector<string> return_vector;
+Token Analizer_ACL::get_token(){
+    Token return_vector;
     string token;
     char c = myfile->peek();
 
@@ -88,12 +92,12 @@ vector<string> Analizer_ACL::get_token(){
             c = myfile->peek();
         }while( is_letter(c) || is_number(c) );
 
-        return_vector.push_back(token);
+        return_vector.content = token;
 
         if( commands.find(token) != commands.end() ){
-            return_vector.push_back("COMMAND");
+            return_vector.type ="COMMAND";
         }else{
-            return_vector.push_back("WORD");
+            return_vector.type ="WORD";
         }
 
     }else if( is_number(c) ){ 
@@ -101,35 +105,34 @@ vector<string> Analizer_ACL::get_token(){
             token += myfile->get();
         }while( is_number(myfile->peek()) );
 
-        return_vector.push_back(token);
-        return_vector.push_back("NUMBER");
+        return_vector.content = token;
+        return_vector.type = "NUMBER";
 
     }else if( is_operator(c) ){ 
         do{
             token += myfile->get();
         }while( is_operator(myfile->peek()) );
 
-        return_vector.push_back(token);
-        return_vector.push_back("OPERATOR");
+        return_vector.content = token;
+        return_vector.type = "OPERATOR";
 
     }else if( c == '"' ){
         do{
-            //atenção yuri
             token += myfile->get();
         }while( is_allowed_in_string(myfile->peek() ) && token.size()<= 40 );
         if( myfile->peek()!= '"' ){
             //THROW ERROR
             cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             token = myfile->peek();
-            return_vector.push_back(token);
-            return_vector.push_back("ERROR");     
+            return_vector.content = token;
+            return_vector.type = "ERROR";     
             return return_vector;       
         }else{
             token+=myfile->get();
         }
 
-        return_vector.push_back(token);
-        return_vector.push_back("STRING");
+        return_vector.content = token;
+        return_vector.type = "STRING";
 
     }else if( c == '[' ){
         do{
@@ -139,27 +142,26 @@ vector<string> Analizer_ACL::get_token(){
             //THROW ERROR
             cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
             token = myfile->peek();
-            return_vector.push_back(token);
-            return_vector.push_back("ERROR");
+            return_vector.content = token;
+            return_vector.type = "ERROR";
             return return_vector;
         }else{
             token += myfile->get();
         }
 
-        return_vector.push_back(token);
-        return_vector.push_back("INDEX");
+        return_vector.content = token;
+        return_vector.type = "INDEX";
 
     }else if( c == '\n'  ){
         do{
             token += myfile->get();
         }while( myfile->peek() == '\n' );
 
-        return_vector.push_back(token);
-        return_vector.push_back("NEW LINE");
+        return_vector.content = token;
+        return_vector.type ="NEW LINE";
 
     }else if( c == EOF){
-        return_vector.push_back("");
-        return_vector.push_back("END");
+        return_vector.content = "";        return_vector.type ="END";
         return return_vector;
 
     }else if( c == ' ' || c == '\t' ){
@@ -168,15 +170,15 @@ vector<string> Analizer_ACL::get_token(){
             c = myfile->peek();
         }while( c==' ' || c == '\t' );
 
-        return_vector.push_back(token);
-        return_vector.push_back("WHITE SPACE");
+        return_vector.content = token;
+        return_vector.type ="WHITE SPACE";
 
     }else{
         cout<< "None of the above!!     :  " << (int)c ;
 
         token = c;
-        return_vector.push_back(token);
-        return_vector.push_back("ERROR");
+        return_vector.content = token;
+        return_vector.type ="ERROR";
 
     }   
 
@@ -197,13 +199,13 @@ vector<string> Analizer_ACL::get_token(){
 
 int main(){
     Analizer_ACL analizer;
-    vector<string> leitura;
-
+    Token leitura;
     if( analizer.myfile->is_open() ){
-        for( int i =0; i<300; ++i ){
+        do{
             leitura = analizer.get_token();
-            cout<< leitura[0];
-        };
+            cout<< leitura.type<< " || ";
+            if(leitura.type=="NEW LINE") cout<< endl;
+        }while(  leitura.type != "END" );
     }
     return 0;
 }
