@@ -49,6 +49,7 @@ inline bool is_allowed_in_string( char c )__attribute__((always_inline));
 inline bool is_allowed_in_string( char c ){
     return c >= 32 && c <= 126 && c != 34;
 }
+
 /*
  *  @brief Lista de comandos aceitos pelo interpretador
  */
@@ -57,155 +58,193 @@ const set<string> commands = {"dimg" , "program", "dodin", "dim", "define", "for
 class Analizer_ACL{
 public:
     Analizer_ACL();
-    //list<map<string,string>> scopes;
-    //vector<string,string> token_vector;
-   Token get_token();
+    bool check_token_sequence( vector<string> sentence );
+    Token get_token();
+    void lexer();
 
+    list<map<string,string>> scopes;
+    list<map<string,string>>::iterator scope_iterator;
+    vector<Token> token_vector;
+    vector<Token>::iterator token_iterator;
+    int scope=0;
     ifstream * myfile;
-
 };
 
 Analizer_ACL::Analizer_ACL(){
     myfile = new ifstream( "prog.dnl" );
-    //myfile->open;
+    map<string,string> global_scope;
+    scopes.push_back(global_scope);
+    scope_iterator = scopes.begin();
+}
+
+bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
+    vector<Token>::iterator entry_state = token_iterator;
+    if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [](string first, Token second){
+        if( first.at(0) == '_'){
+            first.erase(0,1);
+            return second.content == first;
+        }else{
+            return second.type == first;
+        }
+    })){
+        ++token_iterator;//incresed by 1 to say that all this token, including the las, was processed.
+        return true;
+    }else{
+        token_iterator = entry_state;
+        return false;
+    }
 }
 
 /*
  *  @brief
  */
 Token Analizer_ACL::get_token(){
-    Token return_vector;
+    Token readed_token;
+    readed_token.content="";
+    readed_token.type="";
     string token;
-    char c = myfile->peek();
+    char c;
 
-
-    while( c == 42 ){ //atenção yuri
+    if( myfile->is_open() ){
         do{
-           myfile->get();
-        }while( myfile->peek() != '\n' );
-        c = myfile->peek();
+            c = myfile->peek();
+
+            while( c == 42 ){ 
+                do{
+                myfile->get();
+                }while( myfile->peek() != '\n' );
+                c = myfile->peek();
+            }
+
+            if( is_letter(c) ){ 
+                do{
+                    token += myfile->get();
+                    c = myfile->peek();
+                }while( is_letter(c) || is_number(c) );
+
+                readed_token.content = token;
+
+                if( commands.find(token) != commands.end() ){
+                    readed_token.type ="COMMAND";
+                }else{
+                    readed_token.type ="WORD";
+                }
+
+            }else if( is_number(c) ){ 
+                do{
+                    token += myfile->get();
+                }while( is_number(myfile->peek()) );
+
+                readed_token.content = token;
+                readed_token.type = "NUMBER";
+
+            }else if( is_operator(c) ){ 
+                do{
+                    token += myfile->get();
+                }while( is_operator(myfile->peek()) );
+
+                readed_token.content = token;
+                readed_token.type = "OPERATOR";
+
+            }else if( c == '"' ){
+                do{
+                    token += myfile->get();
+                }while( is_allowed_in_string(myfile->peek() ) && token.size()<= 40 );
+                if( myfile->peek()!= '"' ){
+                    //THROW ERROR
+                    cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                    token = myfile->peek();
+                    readed_token.content = token;
+                    readed_token.type = "ERROR";     
+                    return readed_token;       
+                }else{
+                    token+=myfile->get();
+                }
+
+                readed_token.content = token;
+                readed_token.type = "STRING";
+
+            }else if( c == '[' ){
+                do{
+                    token += myfile->get();
+                }while( is_number(myfile->peek()));
+                if( myfile->peek() != ']'){
+                    //THROW ERROR
+                    cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+                    token = myfile->peek();
+                    readed_token.content = token;
+                    readed_token.type = "ERROR";
+                    return readed_token;
+                }else{
+                    token += myfile->get();
+                }
+
+                readed_token.content = token;
+                readed_token.type = "INDEX";
+
+            }else if( c == '\n'  ){
+                do{
+                    token += myfile->get();
+                }while( myfile->peek() == '\n' );
+
+                readed_token.content = token;
+                readed_token.type ="NEW LINE";
+
+            }else if( c == EOF){
+                readed_token.content = "";        readed_token.type ="END";
+                return readed_token;
+
+            }else if( c == ' ' || c == '\t' ){
+                do{
+                    token += myfile->get();
+                    c = myfile->peek();
+                }while( c==' ' || c == '\t' );
+
+                readed_token.content = token;
+                readed_token.type ="WHITE SPACE";
+
+            }else{
+                cout<< "None of the above!!     :  " << (int)c ;
+
+                token = c;
+                readed_token.content = token;
+                readed_token.type ="ERROR";
+
+            }   
+            // cout << readed_token.content;
+            token_vector.push_back(readed_token);
+            readed_token.content="";
+            readed_token.type="";
+            token="";
+        }while( readed_token.type != "END" );
     }
-
-    if( is_letter(c) ){ 
-        do{
-            token += myfile->get();
-            c = myfile->peek();
-        }while( is_letter(c) || is_number(c) );
-
-        return_vector.content = token;
-
-        if( commands.find(token) != commands.end() ){
-            return_vector.type ="COMMAND";
-        }else{
-            return_vector.type ="WORD";
-        }
-
-    }else if( is_number(c) ){ 
-        do{
-            token += myfile->get();
-        }while( is_number(myfile->peek()) );
-
-        return_vector.content = token;
-        return_vector.type = "NUMBER";
-
-    }else if( is_operator(c) ){ 
-        do{
-            token += myfile->get();
-        }while( is_operator(myfile->peek()) );
-
-        return_vector.content = token;
-        return_vector.type = "OPERATOR";
-
-    }else if( c == '"' ){
-        do{
-            token += myfile->get();
-        }while( is_allowed_in_string(myfile->peek() ) && token.size()<= 40 );
-        if( myfile->peek()!= '"' ){
-            //THROW ERROR
-            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            token = myfile->peek();
-            return_vector.content = token;
-            return_vector.type = "ERROR";     
-            return return_vector;       
-        }else{
-            token+=myfile->get();
-        }
-
-        return_vector.content = token;
-        return_vector.type = "STRING";
-
-    }else if( c == '[' ){
-        do{
-            token += myfile->get();
-        }while( is_number(myfile->peek()));
-        if( myfile->peek() != ']'){
-            //THROW ERROR
-            cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-            token = myfile->peek();
-            return_vector.content = token;
-            return_vector.type = "ERROR";
-            return return_vector;
-        }else{
-            token += myfile->get();
-        }
-
-        return_vector.content = token;
-        return_vector.type = "INDEX";
-
-    }else if( c == '\n'  ){
-        do{
-            token += myfile->get();
-        }while( myfile->peek() == '\n' );
-
-        return_vector.content = token;
-        return_vector.type ="NEW LINE";
-
-    }else if( c == EOF){
-        return_vector.content = "";        return_vector.type ="END";
-        return return_vector;
-
-    }else if( c == ' ' || c == '\t' ){
-        do{
-            token += myfile->get();
-            c = myfile->peek();
-        }while( c==' ' || c == '\t' );
-
-        return_vector.content = token;
-        return_vector.type ="WHITE SPACE";
-
-    }else{
-        cout<< "None of the above!!     :  " << (int)c ;
-
-        token = c;
-        return_vector.content = token;
-        return_vector.type ="ERROR";
-
-    }   
-
-    return return_vector; 
+    return readed_token; 
 }
 
-// void lexer( vector<string> token ){
-//     if( token.at(1) == "COMMAND" ){
-//         if( token.at(0) == "dimg" ){
-//         if( token.at(1) == "WHITE SPACE" ){     
-//         if( token.at(1) == "WORD" ){
+void Analizer_ACL::lexer(){
+    token_iterator=token_vector.begin();
+    // vector<string> condicao = ;
+    ++token_iterator;
+    do{
+        if(check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
+            string index = (token_iterator-1)->content;
+            index.erase(0,1);
+            index.pop_back();
+            for(int i =0; i < atoi(index.c_str()); i++ ){
+                (*scope_iterator)[ (token_iterator-3)->content + to_string(i) ] = "";
+            }
+        }else{
 
-//         }
-//         }
-//         }
-//     }
-// }
+        }
+        
+    }while(false);
+
+}
 
 int main(){
     Analizer_ACL analizer;
     Token leitura;
-    if( analizer.myfile->is_open() ){
-        do{
-            leitura = analizer.get_token();
-            cout<< leitura.type<< " || ";
-            if(leitura.type=="NEW LINE") cout<< endl;
-        }while(  leitura.type != "END" );
-    }
+    analizer.get_token();
+    analizer.lexer();
     return 0;
 }
