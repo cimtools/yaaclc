@@ -18,7 +18,8 @@ struct Token{
 };
 
 /* 
- *  @brief Bloco responsável para o interpretador entender o que é uma letra  
+ *  @brief Bloco responsável para o interpretador entender o que é uma letra 
+ *  @param char c é o parâmetro que será testado pelo is_letter 
 */
 inline bool is_letter( char c )__attribute__((always_inline));
 inline bool is_letter( char c ){
@@ -27,7 +28,8 @@ inline bool is_letter( char c ){
 
 /* 
  *  @brief Bloco responsável para o interpretador entender o que é um número, ou seja, através dele
- *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. 
+ *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. .
+ *  @param char c é o parâmetro que será testado pelo is_number.
  */
 inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
@@ -36,6 +38,7 @@ inline bool is_number( char c ){
 
 /* 
  *  @brief Bloco responsável para o interpretador entender o que é um operador 
+ *  @param char c é o parâmetro que será testao pelo is_operator
  */
 inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
@@ -43,7 +46,8 @@ inline bool is_operator( char c ){
 }
 
 /* 
- *   @brief Bloco responsável para identificar quando uma string é permitida
+ *  @brief Bloco responsável para identificar quando uma string é permitida
+ *  @param char c é o parâmetro que será testado pelo is_allowed_in_string  
  */
 inline bool is_allowed_in_string( char c )__attribute__((always_inline));
 inline bool is_allowed_in_string( char c ){
@@ -97,13 +101,22 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
 
 /*
  *  @brief
+ *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
  */
 Token Analizer_ACL::get_token(){
     Token readed_token;
     readed_token.content="";
     readed_token.type="";
     string token;
-    char c;
+    char c = myfile->peek();
+
+    while( c == 42 ){ 
+
+        do{
+           myfile->get();
+        }while( myfile->peek() != '\n' );
+        c = myfile->peek();
+    }
 
     if( myfile->is_open() ){
         do{
@@ -233,8 +246,6 @@ void Analizer_ACL::lexer(){
             for(int i =0; i < atoi(index.c_str()); i++ ){
                 (*scope_iterator)[ (token_iterator-3)->content + to_string(i) ] = "";
             }
-        }else{
-
         }
         
     }while(false);
