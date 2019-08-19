@@ -63,15 +63,16 @@ class Analizer_ACL{
 public:
     Analizer_ACL();
     bool check_token_sequence( vector<string> sentence );
-    Token get_token();
+    void get_tokens();
     void lexer();
 
     list<map<string,string>> scopes;
     list<map<string,string>>::iterator scope_iterator;
-    vector<Token> token_vector;
-    vector<Token>::iterator token_iterator;
+    vector<Token *> token_vector;
+    vector<Token *>::iterator token_iterator;
     int scope=0;
     ifstream * myfile;
+
 };
 
 Analizer_ACL::Analizer_ACL(){
@@ -79,16 +80,17 @@ Analizer_ACL::Analizer_ACL(){
     map<string,string> global_scope;
     scopes.push_back(global_scope);
     scope_iterator = scopes.begin();
+    get_tokens();
 }
 
 bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
-    vector<Token>::iterator entry_state = token_iterator;
-    if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [](string first, Token second){
+    vector<Token *>::iterator entry_state = token_iterator;
+    if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [](string first, Token * second){
         if( first.at(0) == '_'){
             first.erase(0,1);
-            return second.content == first;
+            return second->content == first;
         }else{
-            return second.type == first;
+            return second->type == first;
         }
     })){
         ++token_iterator;//incresed by 1 to say that all this token, including the las, was processed.
@@ -103,10 +105,10 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
  *  @brief
  *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
  */
-Token Analizer_ACL::get_token(){
-    Token readed_token;
-    readed_token.content="";
-    readed_token.type="";
+void Analizer_ACL::get_tokens(){
+    Token * readed_token = new Token();
+    readed_token->content = "";
+    readed_token->type = "";
     string token;
     char c = myfile->peek();
 
@@ -135,12 +137,12 @@ Token Analizer_ACL::get_token(){
                     c = myfile->peek();
                 }while( is_letter(c) || is_number(c) );
 
-                readed_token.content = token;
+                readed_token->content = token;
 
                 if( commands.find(token) != commands.end() ){
-                    readed_token.type ="COMMAND";
+                    readed_token->type ="COMMAND";
                 }else{
-                    readed_token.type ="WORD";
+                    readed_token->type ="WORD";
                 }
 
             }else if( is_number(c) ){ 
@@ -148,16 +150,16 @@ Token Analizer_ACL::get_token(){
                     token += myfile->get();
                 }while( is_number(myfile->peek()) );
 
-                readed_token.content = token;
-                readed_token.type = "NUMBER";
+                readed_token->content = token;
+                readed_token->type = "NUMBER";
 
             }else if( is_operator(c) ){ 
                 do{
                     token += myfile->get();
                 }while( is_operator(myfile->peek()) );
 
-                readed_token.content = token;
-                readed_token.type = "OPERATOR";
+                readed_token->content = token;
+                readed_token->type = "OPERATOR";
 
             }else if( c == '"' ){
                 do{
@@ -167,15 +169,15 @@ Token Analizer_ACL::get_token(){
                     //THROW ERROR
                     cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
                     token = myfile->peek();
-                    readed_token.content = token;
-                    readed_token.type = "ERROR";     
-                    return readed_token;       
+                    readed_token->content = token;
+                    readed_token->type = "ERROR";     
+                    return;       
                 }else{
                     token+=myfile->get();
                 }
 
-                readed_token.content = token;
-                readed_token.type = "STRING";
+                readed_token->content = token;
+                readed_token->type = "STRING";
 
             }else if( c == '[' ){
                 do{
@@ -185,27 +187,28 @@ Token Analizer_ACL::get_token(){
                     //THROW ERROR
                     cout << "sintax error!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
                     token = myfile->peek();
-                    readed_token.content = token;
-                    readed_token.type = "ERROR";
-                    return readed_token;
+                    readed_token->content = token;
+                    readed_token->type = "ERROR";
+                    return;
                 }else{
                     token += myfile->get();
                 }
 
-                readed_token.content = token;
-                readed_token.type = "INDEX";
+                readed_token->content = token;
+                readed_token->type = "INDEX";
 
             }else if( c == '\n'  ){
                 do{
                     token += myfile->get();
                 }while( myfile->peek() == '\n' );
 
-                readed_token.content = token;
-                readed_token.type ="NEW LINE";
+                readed_token->content = token;
+                readed_token->type ="NEW LINE";
 
             }else if( c == EOF){
-                readed_token.content = "";        readed_token.type ="END";
-                return readed_token;
+                readed_token->content = "";        
+                readed_token->type ="END";
+                return;
 
             }else if( c == ' ' || c == '\t' ){
                 do{
@@ -213,39 +216,69 @@ Token Analizer_ACL::get_token(){
                     c = myfile->peek();
                 }while( c==' ' || c == '\t' );
 
-                readed_token.content = token;
-                readed_token.type ="WHITE SPACE";
+                readed_token->content = token;
+                readed_token->type ="WHITE SPACE";
 
             }else{
                 cout<< "None of the above!!     :  " << (int)c ;
 
                 token = c;
-                readed_token.content = token;
-                readed_token.type ="ERROR";
+                readed_token->content = token;
+                readed_token->type ="ERROR";
 
             }   
-            // cout << readed_token.content;
+            if(token_vector.size() <= 10 )cout << "\npushed token "<<readed_token->content<<endl;
             token_vector.push_back(readed_token);
-            readed_token.content="";
-            readed_token.type="";
+            readed_token->content="";
+            readed_token->type="";
             token="";
-        }while( readed_token.type != "END" );
+            //cout <<"\n first token type is:  "<< (*token_vector.begin())->type<<endl;
+        }while( readed_token->type != "END" );
     }
-    return readed_token; 
+    return; 
 }
 
 void Analizer_ACL::lexer(){
+    cout<< "Initializing lexer\n"<< "token_vector size is:  "<<token_vector.size() <<"\n first token is:  "<< (token_vector.at(3))->type<<endl;
     token_iterator=token_vector.begin();
-    // vector<string> condicao = ;
-    ++token_iterator;
     do{
-        if(check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
-            string index = (token_iterator-1)->content;
+        cout << (*token_iterator)->type << endl;
+        if ( check_token_sequence({"WHITE SPACE"})){
+        }else if( check_token_sequence({"NEW LINE"})){
+        }else if( check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
+            string index = (*(token_iterator-1))->content;
             index.erase(0,1);
             index.pop_back();
             for(int i =0; i < atoi(index.c_str()); i++ ){
-                (*scope_iterator)[ (token_iterator-3)->content + to_string(i) ] = "";
+                cout << "\nDeclaring global variable named   " << "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]"<<endl;
+                (*scopes.begin())[ "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]" ] = "";
             }
+        }else if( check_token_sequence({"_if", "WHITE SPACE", "WORD", "INDEX", "WHITE SPACE", "OPERATOR", "WHITE SPACE", "WORD", "INDEX" })){
+            if( (*scope_iterator)["var_" + (*(token_iterator-7))->content + (*(token_iterator-6))->content] == (*scope_iterator)["var_" + (*(token_iterator-2))->content + (*(token_iterator-1))->content]){
+                //entrar no escopo do if
+                map<string,string> new_scope;
+                scopes.push_back(new_scope);
+                ++scope_iterator;
+            }else{
+                do{
+                    ++token_iterator;
+                    if((*token_iterator)->type == "END"){
+                        cout << "coudn`t find the end of if block\n";
+                        break;
+                    }
+                }while( (*token_iterator)->content != "else" && (*token_iterator)->content != "endif" );
+            }
+                
+        }else if( check_token_sequence({"_else"}) ){
+            do{
+                ++token_iterator;
+                if((*token_iterator)->type == "END"){
+                    cout << "coudn`t find the end of if block\n";
+                    break;
+                }
+            }while( (*token_iterator)->content != "endif");
+        }else if((*token_iterator)->type == "END"){
+            break;
         }
         
     }while(false);
@@ -255,7 +288,11 @@ void Analizer_ACL::lexer(){
 int main(){
     Analizer_ACL analizer;
     Token leitura;
-    analizer.get_token();
-    analizer.lexer();
+    
+    //analizer.lexer();
+    cout<< "printing tokens\n";
+    for(int i = 0; i<10;++i){
+        cout << analizer.token_vector.at(i)->content;
+    }
     return 0;
 }
