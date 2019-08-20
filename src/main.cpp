@@ -66,8 +66,8 @@ public:
     int get_tokens();
     void lexer();
 
-    list<map<string,string>> scopes;
-    list<map<string,string>>::iterator scope_iterator;
+    list<map<string,string> * > scopes;
+    list<map<string,string> * >::iterator scope_iterator;
     vector<Token *> token_vector;
     vector<Token *>::iterator token_iterator;
     int scope=0;
@@ -77,7 +77,7 @@ public:
 
 Analizer_ACL::Analizer_ACL(){
     myfile = new ifstream( "prog.dnl" );
-    map<string,string> global_scope;
+    map<string,string> * global_scope = new map<string,string>;
     scopes.push_back(global_scope);
     scope_iterator = scopes.begin();
     get_tokens();
@@ -93,7 +93,6 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
             return second->type == first;
         }
     })){
-        ++token_iterator;//incresed by 1 to say that all this token, including the las, was processed.
         return true;
     }else{
         token_iterator = entry_state;
@@ -237,24 +236,36 @@ int Analizer_ACL::get_tokens(){
 }
 
 void Analizer_ACL::lexer(){
-    cout<< "Initializing lexer\n"<< "token_vector size is:  "<<token_vector.size() <<"\n first token is:  "<< (token_vector.at(3))->type<<endl;
+    int line_count =0;
     token_iterator=token_vector.begin();
+
+    int iterador = 0;
+
     do{
-        cout << (*token_iterator)->type << endl;
+        cout<< "Start decoding token:    "<< (**token_iterator).type <<endl;
         if ( check_token_sequence({"WHITE SPACE"})){
+            ++token_iterator;
         }else if( check_token_sequence({"NEW LINE"})){
+            ++token_iterator;
+            ++line_count;
         }else if( check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
+            cout << "Global array]\n";
+            ++line_count;
             string index = (*(token_iterator-1))->content;
             index.erase(0,1);
             index.pop_back();
             for(int i =0; i < atoi(index.c_str()); i++ ){
                 cout << "\nDeclaring global variable named   " << "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]"<<endl;
-                (*scopes.begin())[ "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]" ] = "";
+                (**scopes.begin())[ "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]" ] = "";
             }
-        }else if( check_token_sequence({"_if", "WHITE SPACE", "WORD", "INDEX", "WHITE SPACE", "OPERATOR", "WHITE SPACE", "WORD", "INDEX" })){
-            if( (*scope_iterator)["var_" + (*(token_iterator-7))->content + (*(token_iterator-6))->content] == (*scope_iterator)["var_" + (*(token_iterator-2))->content + (*(token_iterator-1))->content]){
+        }else if( check_token_sequence({"_if", "WHITE SPACE", "WORD", "INDEX", "WHITE SPACE", "OPERATOR", "WHITE SPACE", "WORD", "INDEX", "NEW LINE" })){
+            ++line_count;
+            string first_key = "var_" + (*(token_iterator-7))->content + (*(token_iterator-6))->content;
+            string second_key = "var_" + (*(token_iterator-2))->content + (*(token_iterator-1))->content;
+
+            if( (**scope_iterator)[first_key] == (**scope_iterator)[ second_key ]){
                 //entrar no escopo do if
-                map<string,string> new_scope;
+                map<string,string> * new_scope = new map<string,string>;
                 scopes.push_back(new_scope);
                 ++scope_iterator;
             }else{
@@ -267,7 +278,7 @@ void Analizer_ACL::lexer(){
                 }while( (*token_iterator)->content != "else" && (*token_iterator)->content != "endif" );
             }
                 
-        }else if( check_token_sequence({"_else"}) ){
+        }else if( check_token_sequence({"_else"}) ){//if is reading else at this point is because it was inside an if, so the else block must be skipped.
             do{
                 ++token_iterator;
                 if((*token_iterator)->type == "END"){
@@ -278,14 +289,17 @@ void Analizer_ACL::lexer(){
         }else if((*token_iterator)->type == "END"){
             break;
         }
-        
-    }while(false);
+        ++iterador;
+    }while( iterador < 10);
 
 }
 
 int main(){
     Analizer_ACL analizer;
     Token leitura;
+    for( auto i = analizer.token_vector.begin() ; i!=analizer.token_vector.begin()+10; ++i){
+        cout << (*i)->type<<endl;
+    }
     
     analizer.lexer();
     return 0;
