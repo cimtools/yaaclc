@@ -8,18 +8,19 @@
 
 using namespace std;
 
-// const var lita de comandos
-// var lista de variaveis
-// var lista de rotinas
-// var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
+// const var command list
+// var variables list
+// var routine list
+// var liked list de vector< variables of each scope > //HOW TO WORKS WITH A PROGRAM ENTRY
 struct Token{
     string content;
     string type;
 };
 
 /* 
- *  @brief Bloco responsável para o interpretador entender o que é uma letra 
- *  @param char c é o parâmetro que será testado pelo is_letter 
+ *  @brief This block is responsible for the interpreter identify what is a letter.
+ *  Through this block the interpreter can recognize if what was typed is a letter.
+ *  @param char c is the parameter that will be tested by is_letter 
 */
 inline bool is_letter( char c )__attribute__((always_inline));
 inline bool is_letter( char c ){
@@ -27,9 +28,9 @@ inline bool is_letter( char c ){
 }
 
 /* 
- *  @brief Bloco responsável para o interpretador entender o que é um número, ou seja, através dele
- *  o identificador consegue reconhecer que o que foi digitado é, de fato, um número. .
- *  @param char c é o parâmetro que será testado pelo is_number.
+ *  @brief This block is responsible for the interpreter identify what is a number. Through
+ *   this block the interpreter can recognize if what was typed is a number.
+ *  @param char c is the parameter that will be tested by is_number.
  */
 inline bool is_number( char c )__attribute__((always_inline));
 inline bool is_number( char c ){
@@ -37,8 +38,8 @@ inline bool is_number( char c ){
 }
 
 /* 
- *  @brief Bloco responsável para o interpretador entender o que é um operador 
- *  @param char c é o parâmetro que será testao pelo is_operator
+ *  @brief This block is responsible for the interpreter identify what is a operator 
+ *  @param char c is the parameter that will be tested by is_operator
  */
 inline bool is_operator( char c )__attribute__((always_inline));
 inline bool is_operator( char c ){
@@ -46,8 +47,8 @@ inline bool is_operator( char c ){
 }
 
 /* 
- *  @brief Bloco responsável para identificar quando uma string é permitida
- *  @param char c é o parâmetro que será testado pelo is_allowed_in_string  
+ *  @brief This block is responsible to identify when a string is allowed. 
+ *  @param char c is the parameter that will be tested by is_allowed_in_string  
  */
 inline bool is_allowed_in_string( char c )__attribute__((always_inline));
 inline bool is_allowed_in_string( char c ){
@@ -55,7 +56,7 @@ inline bool is_allowed_in_string( char c ){
 }
 
 /*
- *  @brief Lista de comandos aceitos pelo interpretador
+ *  @brief const set<string> comands is our command list accept by our compiler
  */
 const set<string> commands = { "dimg" , "if", "else", "endif", "set", "println" };
 
@@ -103,7 +104,7 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
 
 /*
  *  @brief
- *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
+ *  @param Type pointer ifstream that point to myfile file.
  */
 int Analizer_ACL::get_tokens(){
     
