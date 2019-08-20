@@ -8,10 +8,6 @@
 
 using namespace std;
 
-// const var lita de comandos
-// var lista de variaveis
-// var lista de rotinas
-// var liked list de vector< variaveis de cada escopo > //COMO LIDA COM A ENTRADA DE UM PROGRAMA
 struct Token{
     string content;
     string type;
@@ -243,9 +239,9 @@ void Analizer_ACL::lexer(){
     do{
         cout << "\n\nPosicaoao do iterador no comeco da analise  "<<std::distance(token_vector.begin(), token_iterator) << endl;
         cout<< "Start decoding token:    "<< (**token_iterator).content << " ------- " << (**token_iterator).type <<endl;
-        if ( check_token_sequence({"WHITE SPACE"})){
+        if ( check_token_sequence({"WHITE SPACE"}) ){
 
-        }else if( check_token_sequence({"NEW LINE"})){
+        }else if( check_token_sequence({"NEW LINE"}) ){
 
             ++line_count;
 
