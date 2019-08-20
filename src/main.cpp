@@ -84,8 +84,9 @@ Analizer_ACL::Analizer_ACL(){
 }
 
 bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
-    vector<Token *>::iterator entry_state = token_iterator;
-    if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [](string first, Token * second){
+    vector<Token *>::iterator after_state = token_iterator;
+    if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [&](string first, Token * second){
+        ++after_state;
         if( first.at(0) == '_'){
             first.erase(0,1);
             return second->content == first;
@@ -93,9 +94,12 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
             return second->type == first;
         }
     })){
+        cout << "exiting true\n";
+        cout << (*token_iterator)->type<<endl;
+        token_iterator = after_state;
+        cout << (*token_iterator)->type<<endl;
         return true;
     }else{
-        token_iterator = entry_state;
         return false;
     }
 }
@@ -106,9 +110,7 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
  */
 int Analizer_ACL::get_tokens(){
     
-    //Token * readed_token = new Token();
-    // readed_token->content = "";
-    // readed_token->type = "";
+    Token * readed_token;
     string token;
     char c = myfile->peek();
 
@@ -122,7 +124,7 @@ int Analizer_ACL::get_tokens(){
 
     if( myfile->is_open() ){
         do{
-            Token * readed_token = new Token();
+            readed_token = new Token();
             token="";
 
             c = myfile->peek();
@@ -242,23 +244,29 @@ void Analizer_ACL::lexer(){
     int iterador = 0;
 
     do{
-        cout<< "Start decoding token:    "<< (**token_iterator).type <<endl;
+        //cout<< "Start decoding token:    "<< (**token_iterator).type <<endl;
         if ( check_token_sequence({"WHITE SPACE"})){
             ++token_iterator;
         }else if( check_token_sequence({"NEW LINE"})){
             ++token_iterator;
             ++line_count;
         }else if( check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
-            cout << "Global array]\n";
+            //token_iterator-2;
+            cout << "Global array\n"<<"TOKEN TREATED IS   "<<(*(token_iterator))->content<<endl;
             ++line_count;
-            string index = (*(token_iterator-1))->content;
+            string map_key;
+            string index = (*(token_iterator))->content;
             index.erase(0,1);
             index.pop_back();
-            for(int i =0; i < atoi(index.c_str()); i++ ){
-                cout << "\nDeclaring global variable named   " << "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]"<<endl;
-                (**scopes.begin())[ "var_" + (*(token_iterator-3))->content +"[" + to_string(i) + "]" ] = "";
+            token_iterator--;
+            cout << "token treated is "<<(*(token_iterator))->content;
+            for(int i =0; i <= atoi(index.c_str()); i++ ){
+                map_key =  "var_" + (*(token_iterator))->content +"[" + to_string(i) + "]";
+                cout << "map_key   " << map_key << endl;
+                cout << "\nDeclaring global variable named   " << map_key << endl;
+                (**scopes.begin())[ map_key ] = "";
             }
-        }else if( check_token_sequence({"_if", "WHITE SPACE", "WORD", "INDEX", "WHITE SPACE", "OPERATOR", "WHITE SPACE", "WORD", "INDEX", "NEW LINE" })){
+        }else if( check_token_sequence({"_if", "WHITE SPACE", "WORD", "INDEX", "WHITE SPACE", "_=", "WHITE SPACE", "WORD", "INDEX", "NEW LINE" })){
             ++line_count;
             string first_key = "var_" + (*(token_iterator-7))->content + (*(token_iterator-6))->content;
             string second_key = "var_" + (*(token_iterator-2))->content + (*(token_iterator-1))->content;
@@ -296,10 +304,6 @@ void Analizer_ACL::lexer(){
 
 int main(){
     Analizer_ACL analizer;
-    Token leitura;
-    for( auto i = analizer.token_vector.begin() ; i!=analizer.token_vector.begin()+10; ++i){
-        cout << (*i)->type<<endl;
-    }
     
     analizer.lexer();
     return 0;
