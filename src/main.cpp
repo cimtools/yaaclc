@@ -63,7 +63,7 @@ class Analizer_ACL{
 public:
     Analizer_ACL();
     bool check_token_sequence( vector<string> sentence );
-    void get_tokens();
+    int get_tokens();
     void lexer();
 
     list<map<string,string>> scopes;
@@ -105,10 +105,11 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
  *  @brief
  *  @param ponteiro do tipo ifstream que aponta para o arquivo myfile 
  */
-void Analizer_ACL::get_tokens(){
-    Token * readed_token = new Token();
-    readed_token->content = "";
-    readed_token->type = "";
+int Analizer_ACL::get_tokens(){
+    
+    //Token * readed_token = new Token();
+    // readed_token->content = "";
+    // readed_token->type = "";
     string token;
     char c = myfile->peek();
 
@@ -122,6 +123,9 @@ void Analizer_ACL::get_tokens(){
 
     if( myfile->is_open() ){
         do{
+            Token * readed_token = new Token();
+            token="";
+
             c = myfile->peek();
 
             while( c == 42 ){ 
@@ -171,7 +175,7 @@ void Analizer_ACL::get_tokens(){
                     token = myfile->peek();
                     readed_token->content = token;
                     readed_token->type = "ERROR";     
-                    return;       
+                    return -1;       
                 }else{
                     token+=myfile->get();
                 }
@@ -189,7 +193,7 @@ void Analizer_ACL::get_tokens(){
                     token = myfile->peek();
                     readed_token->content = token;
                     readed_token->type = "ERROR";
-                    return;
+                    return -2;
                 }else{
                     token += myfile->get();
                 }
@@ -208,7 +212,6 @@ void Analizer_ACL::get_tokens(){
             }else if( c == EOF){
                 readed_token->content = "";        
                 readed_token->type ="END";
-                return;
 
             }else if( c == ' ' || c == '\t' ){
                 do{
@@ -227,15 +230,10 @@ void Analizer_ACL::get_tokens(){
                 readed_token->type ="ERROR";
 
             }   
-            if(token_vector.size() <= 10 )cout << "\npushed token "<<readed_token->content<<endl;
             token_vector.push_back(readed_token);
-            readed_token->content="";
-            readed_token->type="";
-            token="";
-            //cout <<"\n first token type is:  "<< (*token_vector.begin())->type<<endl;
-        }while( readed_token->type != "END" );
-    }
-    return; 
+        }while( token!="" );
+    }    
+    return 1; 
 }
 
 void Analizer_ACL::lexer(){
@@ -289,10 +287,6 @@ int main(){
     Analizer_ACL analizer;
     Token leitura;
     
-    //analizer.lexer();
-    cout<< "printing tokens\n";
-    for(int i = 0; i<10;++i){
-        cout << analizer.token_vector.at(i)->content;
-    }
+    analizer.lexer();
     return 0;
 }
