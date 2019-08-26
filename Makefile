@@ -1,5 +1,5 @@
 main: src/main.cpp src/Analizer_ACL.cpp
-	g++ -o bin/main src/main.cpp src/Analizer_ACL.cpp -I/lib/
+	g++ -g src/main.cpp src/Analizer_ACL.cpp -o bin/main  -I/lib/
 
 clean:
 	rm bin/main
