@@ -10,9 +10,10 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char* argv[]){
     cout << "begining" << endl;
-    Analizer_ACL analizer("./examples/base.dnl");
+    cout << argv[1] << endl;
+    Analizer_ACL analizer(argv[1]);
     cout << "Object created" << endl;
 
     cout << analizer.token_vector.size();
