@@ -12,7 +12,7 @@ using namespace std;
 
 int main(){
     cout << "begining" << endl;
-    Analizer_ACL analizer("../src/base.dnl");
+    Analizer_ACL analizer("./examples/base.dnl");
     cout << "Object created" << endl;
 
     cout << analizer.token_vector.size();
