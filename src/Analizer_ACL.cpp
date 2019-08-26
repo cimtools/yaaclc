@@ -38,6 +38,28 @@ bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
     }
 }
 
+string Analizer_ACL::search_scopes( string key ){
+    string return_value = "__ERRCODE: Couldn't find variable name";
+
+    //First chek if it is on global scope.
+    if( (**(scopes.begin())).count(key) ){
+        return_value = (**(scopes.begin()))[key];
+    }else{
+        for( auto search_iterator = scope_iterator; search_iterator != scopes.begin(); --search_iterator ){
+            if( (**search_iterator).count(key) ){//If there is at least one occurence of the key on the current map.
+                return_value = (**search_iterator)[key];
+                break;//find the value, so break the loop.
+            }
+        }
+    }
+    if( return_value == "__ERRCODE: Couldn't find variable name\n"){
+        cout << "Couldn't find the variable name.\n";
+        return "__ERR";
+    }
+
+    return return_value;
+}
+
 /*
  *  @brief
  *  @param Type pointer ifstream that point to myfile file.
@@ -225,7 +247,7 @@ void Analizer_ACL::lexer(){
                 cout << "\n!Expecting variable. Sintax error." << line_count << endl;
             }
             cout << "First key is  " << first_key << endl;
-            first_value = (**scope_iterator)[first_key];
+            first_value = search_scopes( first_key );
             
             if( check_token_sequence({"_<", "WHITE SPACE", "_>", "WHITE SPACE" })){
                 used_operator = "< >";
@@ -237,10 +259,10 @@ void Analizer_ACL::lexer(){
 
             if( check_token_sequence({ "WORD", "INDEX", "NEW LINE" }) ){
                 second_key = "var_" + (*(token_iterator-3))->content + (*(token_iterator-2))->content;
-                second_value = (**scope_iterator)[second_key];
+                second_value = search_scopes( second_key );
             }else if( check_token_sequence({ "WORD", "NEW LINE" }) ){
                 second_key = "var_" + (*(token_iterator-2))->content;
-                second_value = (**scope_iterator)[second_key];
+                second_value = search_scopes( second_key );
             }else if( check_token_sequence({ "NUMBER", "NEW LINE" }) ){
                 second_value = (*(token_iterator-2))->content;
             }else{
