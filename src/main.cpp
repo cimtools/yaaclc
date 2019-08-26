@@ -10,12 +10,13 @@
 
 using namespace std;
 
-
-
-
 int main(){
-    Analizer_ACL analizer;
-    
+    cout << "begining" << endl;
+    Analizer_ACL analizer("../src/base.dnl");
+    cout << "Object created" << endl;
+
+    cout << analizer.token_vector.size();
     analizer.lexer();
+
     return 0;
 }

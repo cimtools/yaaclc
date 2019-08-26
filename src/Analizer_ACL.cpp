@@ -1,10 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <set>
-#include <map>
-#include <list>
 #include "../lib/Analizer_ACL.hpp"
 
 using namespace std;
@@ -14,6 +7,16 @@ Analizer_ACL::Analizer_ACL(){
     map<string,string> * global_scope = new map<string,string>;
     scopes.push_back(global_scope);
     scope_iterator = scopes.begin();
+    cout << "Constructor: start getting tokens" << endl;
+    get_tokens();
+}
+
+Analizer_ACL::Analizer_ACL( string file_path ){
+    myfile = new ifstream( file_path );
+    map<string,string> * global_scope = new map<string,string>;
+    scopes.push_back(global_scope);
+    scope_iterator = scopes.begin();
+    cout << "Constructor: start getting tokens" << endl;
     get_tokens();
 }
 
@@ -162,9 +165,14 @@ int Analizer_ACL::get_tokens(){
                 readed_token->type ="ERROR";
 
             }   
+            cout << "size of token vector is: " << token_vector.size() <<  endl;
             token_vector.push_back(readed_token);
+            cout << "size of token vector is: " << token_vector.size() <<  endl;
         }while( token!="" );
+    }else{
+        cout << "The file is not open." << endl;
     }    
+    cout << "The number of tokens readed were " << token_vector.size() << endl;
     return 1; 
 }
 

@@ -59,6 +59,7 @@ const set<string> commands = { "dimg" , "if", "else", "endif", "set", "println" 
 class Analizer_ACL{
 public:
     Analizer_ACL();
+    Analizer_ACL( string file_path );
     bool check_token_sequence( vector<string> sentence );
     int get_tokens();
     void lexer();
