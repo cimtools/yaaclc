@@ -1,10 +1,10 @@
 
 dimg glob[10]
 
-set glob[1] = 11
-set glob[2] = 10
+set glob[1] = 10
+set glob[2] = 101
 
-if glob[1] = glob[2]
+if glob[1] < > glob[2]
     println "print 1"
 else 
     println "print 2"
