@@ -61,7 +61,7 @@ public:
     Analizer_ACL();
     Analizer_ACL( string file_path );
 
-    bool check_token_sequence( vector<string> sentence );
+    bool eat_tokens_if_match( vector<string> sentence );
     string search_scopes( string key );
     int get_tokens();
     void lexer();

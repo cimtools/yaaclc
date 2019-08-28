@@ -13,10 +13,11 @@ using namespace std;
 int main(int argc, char* argv[]){
     cout << "begining" << endl;
     cout << argv[1] << endl;
+    
     Analizer_ACL analizer(argv[1]);
     cout << "Object created" << endl;
 
-    cout << analizer.token_vector.size();
+    cout << analizer.token_vector.size() << endl;
     analizer.lexer();
 
     return 0;

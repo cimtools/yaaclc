@@ -1,4 +1,5 @@
 #include "../lib/Analizer_ACL.hpp"
+//#define DEBUGGING
 
 using namespace std;
 
@@ -7,7 +8,9 @@ Analizer_ACL::Analizer_ACL(){
     map<string,string> * global_scope = new map<string,string>;
     scopes.push_back(global_scope);
     scope_iterator = scopes.begin();
+    #ifdef DEBUGGING
     cout << "Constructor: start getting tokens" << endl;
+    #endif
     get_tokens();
 }
 
@@ -16,11 +19,13 @@ Analizer_ACL::Analizer_ACL( string file_path ){
     map<string,string> * global_scope = new map<string,string>;
     scopes.push_back(global_scope);
     scope_iterator = scopes.begin();
+    #ifdef DEBUGGING
     cout << "Constructor: start getting tokens" << endl;
+    #endif
     get_tokens();
 }
 
-bool Analizer_ACL::check_token_sequence( vector<string> type_sequence ){
+bool Analizer_ACL::eat_tokens_if_match( vector<string> type_sequence ){
     vector<Token *>::iterator after_state = token_iterator;
     if(equal( type_sequence.begin(), type_sequence.end(), token_iterator, [&](string first, Token * second){
         ++after_state;
@@ -187,14 +192,14 @@ int Analizer_ACL::get_tokens(){
                 readed_token->type ="ERROR";
 
             }   
-            cout << "size of token vector is: " << token_vector.size() <<  endl;
             token_vector.push_back(readed_token);
-            cout << "size of token vector is: " << token_vector.size() <<  endl;
         }while( token!="" );
     }else{
         cout << "The file is not open." << endl;
     }    
+    #ifdef DEBUGGING
     cout << "The number of tokens readed were " << token_vector.size() << endl;
+    #endif
     return 1; 
 }
 
@@ -206,18 +211,19 @@ void Analizer_ACL::lexer(){
     token_iterator=token_vector.begin();
 
     do{
+        #ifdef DEBUGGING
         cout << "\n\nPosicaoao do iterador no comeco da analise  "<<std::distance(token_vector.begin(), token_iterator) << endl;
         cout<< "Start decoding token:    "<< (**token_iterator).content << " ------- " << (**token_iterator).type <<endl;
-
-        if ( check_token_sequence({"WHITE SPACE"}) ){
+        #endif
+        if ( eat_tokens_if_match({"WHITE SPACE"}) ){
             //Ignore.
         }
-        else if( check_token_sequence({"NEW LINE"}) ){
+        else if( eat_tokens_if_match({"NEW LINE"}) ){
 
             ++line_count;
 
         }
-        else if( check_token_sequence({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
+        else if( eat_tokens_if_match({"_dimg","WHITE SPACE","WORD","INDEX", "NEW LINE"})){
             string map_key, index;
             int number_of_indexes;
 
@@ -230,48 +236,53 @@ void Analizer_ACL::lexer(){
             number_of_indexes = atoi(index.c_str());
 
             for(int i =0; i <= number_of_indexes; ++i ){
+                #ifdef DEBUGGING
                 cout << "\nDeclaring global variable named   " << map_key + to_string(i) + "]" << endl;
+                #endif
                 (**scopes.begin())[ map_key + to_string(i) + "]" ] = "";
             }
 
         }
-        else if( check_token_sequence({"_if", "WHITE SPACE"})){//Run the if block until an else, or jump until the correspondent else.
+        else if( eat_tokens_if_match({"_if", "WHITE SPACE"})){//Run the if block until an else, or jump until the correspondent else.
             string first_key, first_value, second_key, second_value, used_operator;
             bool condition;
 
-            if( check_token_sequence({"WORD","INDEX","WHITE SPACE"}) ){
+            if( eat_tokens_if_match({"WORD","INDEX","WHITE SPACE"}) ){
                 first_key = "var_" + (*(token_iterator-3))->content + (*(token_iterator-2))->content;
-            }else if( check_token_sequence({"WORD", "WHITE SPACE"}) ){
+            }else if( eat_tokens_if_match({"WORD", "WHITE SPACE"}) ){
                 first_key = "var_" + (*(token_iterator-2))->content;
             }else{
                 cout << "\n!Expecting variable. Sintax error." << line_count << endl;
             }
+            #ifdef DEBUGGING
             cout << "First key is  " << first_key << endl;
+            #endif
             first_value = search_scopes( first_key );
             
-            if( check_token_sequence({"_<", "WHITE SPACE", "_>", "WHITE SPACE" })){
+            if( eat_tokens_if_match({"_<", "WHITE SPACE", "_>", "WHITE SPACE" })){
                 used_operator = "< >";
-            }else if( check_token_sequence({ "OPERATOR", "WHITE SPACE" }) ){
+            }else if( eat_tokens_if_match({ "OPERATOR", "WHITE SPACE" }) ){
                 used_operator = (*(token_iterator-2))->content;
             }else{
                 cout << "\n!!Expecting operator. Sintax error." << line_count << endl;
             }
 
-            if( check_token_sequence({ "WORD", "INDEX", "NEW LINE" }) ){
+            if( eat_tokens_if_match({ "WORD", "INDEX", "NEW LINE" }) ){
                 second_key = "var_" + (*(token_iterator-3))->content + (*(token_iterator-2))->content;
                 second_value = search_scopes( second_key );
-            }else if( check_token_sequence({ "WORD", "NEW LINE" }) ){
+            }else if( eat_tokens_if_match({ "WORD", "NEW LINE" }) ){
                 second_key = "var_" + (*(token_iterator-2))->content;
                 second_value = search_scopes( second_key );
-            }else if( check_token_sequence({ "NUMBER", "NEW LINE" }) ){
+            }else if( eat_tokens_if_match({ "NUMBER", "NEW LINE" }) ){
                 second_value = (*(token_iterator-2))->content;
             }else{
                 cout << "\n!Expecting variable. Sintax error." << line_count << endl;
             }
 
             ++line_count;
-
+            #ifdef DEBUGGING
             cout << "The first value is " << first_value << "  the second value is " << second_value << endl;
+            #endif
             if( used_operator == "=" ){
                 condition = first_value == second_value;
             }else if( used_operator == "<"){
@@ -287,8 +298,9 @@ void Analizer_ACL::lexer(){
             }else{
                 cout << "Error identifying the operator for comparison." << endl;
             }
-
+            #ifdef DEBUGGING
             cout << "\nif condition is " << condition << endl;
+            #endif
             if( condition ){
                 //Enter if scope.
                 scopes.push_back( new map<string,string> );
@@ -306,7 +318,7 @@ void Analizer_ACL::lexer(){
             }
                 
         }
-        else if( check_token_sequence({"_else"}) ){//If is reading else at this point is because it was inside an if, so the else block must be skipped.
+        else if( eat_tokens_if_match({"_else"}) ){//If is reading else at this point is because it was inside an if, so the else block must be skipped.
             do{
                 ++token_iterator;
                 if((*token_iterator)->type == "END"){
@@ -319,32 +331,39 @@ void Analizer_ACL::lexer(){
             --scope_iterator;
             scopes.pop_back();
         }
-        else if( check_token_sequence({ "_println", "WHITE SPACE", "STRING", "NEW LINE" })){
+        else if( eat_tokens_if_match({ "_println", "WHITE SPACE", "STRING", "NEW LINE" })){
+            string message;
+
             ++line_count;
 
-            cout << (*(token_iterator-2))->content;
+            message = (*(token_iterator-2))->content;
+            message.erase(0,1); // erase the first char (")
+            message.pop_back(); // erase the last char (")
+
+            cout << message << endl;
 
         }
-        else if( check_token_sequence({ "_endif" }) ){    
+        else if( eat_tokens_if_match({ "_endif" }) ){    
             //If it hit an endif here it is geting out of a scope, then pop the scope
             --scope_iterator;
             scopes.pop_back();
 
         }
-        else if( check_token_sequence({ "_set", "WHITE SPACE", "WORD" }) ){
+        else if( eat_tokens_if_match({ "_set", "WHITE SPACE", "WORD" }) ){
             string key, value;
 
-            if( check_token_sequence({ "INDEX", "WHITE SPACE", "_=", "WHITE SPACE", "NUMBER" }) ){
+            if( eat_tokens_if_match({ "INDEX", "WHITE SPACE", "_=", "WHITE SPACE", "NUMBER" }) ){
                 key = "var_" + (*(token_iterator-6))->content + (*(token_iterator-5))->content;
                 value = (*(token_iterator-1))->content;
-            }else if( check_token_sequence({ "WHITE SPACE", "_=", "WHITE SPACE", "NUMBER" }) ){
+            }else if( eat_tokens_if_match({ "WHITE SPACE", "_=", "WHITE SPACE", "NUMBER" }) ){
                 key = "var_" + (*(token_iterator-5))->content;
                 value = (*(token_iterator-1))->content;
             }
 
             (**scope_iterator)[key]= value;
+            #ifdef DEBUGGING
             cout << "new value is " << key << " = " << (**scope_iterator)[key] << endl;
-
+            #endif
         }
         else if((*token_iterator)->type == "END"){
             break;
