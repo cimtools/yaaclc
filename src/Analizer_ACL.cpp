@@ -1,4 +1,6 @@
 #include "../lib/Analizer_ACL.hpp"
+#include <unistd.h>
+//#include <windows.h>
 // #define DEBUGGING
 // #define DEBUGGING2
 using namespace std;
@@ -434,6 +436,14 @@ void Analizer_ACL::lexer(){
             #ifdef DEBUGGING
             cout << "new value is " << key << " = " << (**scope_iterator)[key] << endl;
             #endif
+        }   
+        else if(eat_tokens_if_match({ "_delay", "WHITE SPACE", "NUMBER", "NEW LINE"})){
+            
+            string time_delay = get_relative_token_content(-2);
+            int time_delay_converted = atoi(time_delay.c_str());
+            cout<<"o valor de time delay eh  "<<time_delay<<endl;
+            usleep(atoi(time_delay.c_str()));
+            cout<<"testando delay"<<endl;
         }
         // else if( eat_tokens_if_match( { "FIRST TOKEN TYPE", "_token content" } )){
         //      Do something;
@@ -444,6 +454,6 @@ void Analizer_ACL::lexer(){
 
         ++iterations;
 
-    }while( iterations < 20);
+    }while( iterations < 200);
 
 }
