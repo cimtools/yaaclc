@@ -65,6 +65,26 @@ string Analizer_ACL::search_scopes( string key ){
     return return_value;
 }
 
+string Analizer_ACL::get_relative_token_content( int relative_position ){
+    string content;
+
+    content = (*(token_iterator+relative_position))->content;
+    #ifdef DEBUGGING
+    cout << "get_relative_token_content:The readed token is " << content << endl;
+    #endif
+    return content;
+}
+
+string Analizer_ACL::get_relative_token_type( int relative_position ){
+    string type;
+
+    type = (*(token_iterator+relative_position))->type;
+    #ifdef DEBUGGING
+    cout << "get_relative_token_content:The readed token is " << type << endl;
+    #endif
+    return type;
+}
+
 /*
  *  @brief
  *  @param Type pointer ifstream that point to myfile file.
@@ -229,8 +249,8 @@ void Analizer_ACL::lexer(){
 
             ++line_count;
 
-            map_key = "var_" + (*(token_iterator-3))->content +"[";
-            index = (*(token_iterator-2))->content;
+            map_key = "var_" +  get_relative_token_content(-3) +"[";
+            index =  get_relative_token_content(-2);
             index.erase(0,1); // remove '[' from index (first char)
             index.pop_back(); // remove ']' from index (last char)
             number_of_indexes = atoi(index.c_str());
@@ -248,9 +268,9 @@ void Analizer_ACL::lexer(){
             bool condition;
 
             if( eat_tokens_if_match({"WORD","INDEX","WHITE SPACE"}) ){
-                first_key = "var_" + (*(token_iterator-3))->content + (*(token_iterator-2))->content;
+                first_key = "var_" +  get_relative_token_content(-3) +  get_relative_token_content(-2);
             }else if( eat_tokens_if_match({"WORD", "WHITE SPACE"}) ){
-                first_key = "var_" + (*(token_iterator-2))->content;
+                first_key = "var_" +  get_relative_token_content(-2);
             }else{
                 cout << "\n!Expecting variable. Sintax error." << line_count << endl;
             }
@@ -262,19 +282,19 @@ void Analizer_ACL::lexer(){
             if( eat_tokens_if_match({"_<", "WHITE SPACE", "_>", "WHITE SPACE" })){
                 used_operator = "< >";
             }else if( eat_tokens_if_match({ "OPERATOR", "WHITE SPACE" }) ){
-                used_operator = (*(token_iterator-2))->content;
+                used_operator =  get_relative_token_content(-2);
             }else{
                 cout << "\n!!Expecting operator. Sintax error." << line_count << endl;
             }
 
             if( eat_tokens_if_match({ "WORD", "INDEX", "NEW LINE" }) ){
-                second_key = "var_" + (*(token_iterator-3))->content + (*(token_iterator-2))->content;
+                second_key = "var_" +  get_relative_token_content(-3) +  get_relative_token_content(-2);
                 second_value = search_scopes( second_key );
             }else if( eat_tokens_if_match({ "WORD", "NEW LINE" }) ){
-                second_key = "var_" + (*(token_iterator-2))->content;
+                second_key = "var_" +  get_relative_token_content(-2);
                 second_value = search_scopes( second_key );
             }else if( eat_tokens_if_match({ "NUMBER", "NEW LINE" }) ){
-                second_value = (*(token_iterator-2))->content;
+                second_value =  get_relative_token_content(-2);
             }else{
                 cout << "\n!Expecting variable. Sintax error." << line_count << endl;
             }
@@ -306,11 +326,12 @@ void Analizer_ACL::lexer(){
                 scopes.push_back( new map<string,string> );
                 ++scope_iterator;
             }else{
-                //If case the condition wasent met, skip the if block.
+                //If case the condition wasent met, skip (the if block) until find endif or else. If get END token it is a ERROR!!
+                //skip_block();
                 do{
                     ++token_iterator;
                     if((*token_iterator)->type == "END"){
-                        cout << "coudn`t find the end of if block\n";
+                        cout << "SKIPING IF BLOCK ERROR: coudn`t find the end of if block\n";
                         break;
                     }
                 }while( (*token_iterator)->content != "else" && (*token_iterator)->content != "endif" );
@@ -331,17 +352,47 @@ void Analizer_ACL::lexer(){
             --scope_iterator;
             scopes.pop_back();
         }
-        else if( eat_tokens_if_match({ "_println", "WHITE SPACE", "STRING", "NEW LINE" })){
-            string message;
+        else if( eat_tokens_if_match({ "_println", "WHITE SPACE", "STRING" })){ 
+            string message, temp_read;
 
-            ++line_count;
-
-            message = (*(token_iterator-2))->content;
+            message = get_relative_token_content(-1);
             message.erase(0,1); // erase the first char (")
             message.pop_back(); // erase the last char (")
 
-            cout << message << endl;
+            while( eat_tokens_if_match({ "WHITE SPACE", "STRING" })){
+                temp_read = get_relative_token_content(-1);
+                temp_read.erase(0,1);
+                temp_read.pop_back();
+                message += temp_read;
+            }
 
+            if( ! eat_tokens_if_match({ "NEW LINE" }) ){
+                cout << "ERROR: EXPECTING NEW LINE TOKEN!!!!!!!" << endl;
+            }
+
+            cout << message << endl;
+        }
+        else if( eat_tokens_if_match({ "_print", "WHITE SPACE", "STRING" })){ 
+            string message, temp_read;
+
+            message = get_relative_token_content(-1);
+            message.erase(0,1); // erase the first char (")
+            message.pop_back(); // erase the last char (")
+
+            while( eat_tokens_if_match({ "WHITE SPACE", "STRING" })){
+                temp_read = get_relative_token_content(-1);
+                temp_read.erase(0,1);
+                temp_read.pop_back();
+                message += temp_read;
+            }
+
+            if( ! eat_tokens_if_match({ "NEW LINE" }) ){
+                cout << "ERROR: EXPECTING NEW LINE TOKEN!!!!!!!" << endl;
+            }else{
+                ++line_count;
+            }
+
+            cout << message ;
         }
         else if( eat_tokens_if_match({ "_endif" }) ){    
             //If it hit an endif here it is geting out of a scope, then pop the scope
@@ -365,6 +416,9 @@ void Analizer_ACL::lexer(){
             cout << "new value is " << key << " = " << (**scope_iterator)[key] << endl;
             #endif
         }
+        // else if( eat_tokens_if_match( { "FIRST TOKEN TYPE", "_token content" } )){
+        //      Do something;
+        // }
         else if((*token_iterator)->type == "END"){
             break;
         }

@@ -2,12 +2,14 @@
 dimg glob[10]
 
 set glob[1] = 11
-set glob[2] = 101
+set glob[2] = 10
 
-if glob[1] < > glob[2]
-    if glob[1] = 11
-        println "print 1"
-    endif
+if glob[1] > glob[2]
+
+    println "print 1" "print a" "print a" "print a"
+    println "print a"
+    println "print s"
+    println "print d"
 else 
     println "print 2"
 endif

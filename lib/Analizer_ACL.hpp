@@ -63,6 +63,8 @@ public:
 
     bool eat_tokens_if_match( vector<string> sentence );
     string search_scopes( string key );
+    string get_relative_token_content( int relative_position );
+    string get_relative_token_type( int relative_position );
     int get_tokens();
     void lexer();
 
