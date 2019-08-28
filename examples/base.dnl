@@ -3,14 +3,16 @@ dimg glob[10]
 
 set glob[1] = 11
 set glob[2] = 10
+set glob[3] = 3
 
 if glob[1] > glob[2]
-
-    println "print 1" "print a" "print a" "print a"
+    if glob[3] = 3
+        println "print 1" "print 2" "print 3" "print 4"
+    endif
     println "print a"
     println "print s"
     println "print d"
 else 
-    println "print 2"
+    println "else block"
 endif
 

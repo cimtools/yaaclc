@@ -61,11 +61,16 @@ public:
     Analizer_ACL();
     Analizer_ACL( string file_path );
 
-    bool eat_tokens_if_match( vector<string> sentence );
+    
     string search_scopes( string key );
+
     string get_relative_token_content( int relative_position );
     string get_relative_token_type( int relative_position );
+
+    void skip_block();
+
     int get_tokens();
+    bool eat_tokens_if_match( vector<string> sentence );
     void lexer();
 
     list<map<string,string> * > scopes;

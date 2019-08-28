@@ -1,6 +1,6 @@
 #include "../lib/Analizer_ACL.hpp"
-//#define DEBUGGING
-
+// #define DEBUGGING
+// #define DEBUGGING2
 using namespace std;
 
 Analizer_ACL::Analizer_ACL(){
@@ -85,6 +85,31 @@ string Analizer_ACL::get_relative_token_type( int relative_position ){
     return type;
 }
 
+void Analizer_ACL::skip_block(){
+    int scope_level = 0;
+    do{
+
+        ++token_iterator; //start analizing the next token.
+        #ifdef DEBUGGING2
+        cout << "skip_block: Token being analized is   " << (*token_iterator)->content << "      From type        " << (*token_iterator)->type << "       scope_level has value     "<< scope_level  <<endl;
+        #endif
+        if((*token_iterator)->type == "END"){
+            cout << "SKIPING IF BLOCK ERROR: coudn`t find the end of if block\n";
+            break;
+        }else if( (*token_iterator)->content == "if" ){
+            ++scope_level;
+        }else if( (*token_iterator)->content == "endif" ){
+            --scope_level;
+        }
+
+    }while( !(  ( (*token_iterator)->content == "else" && scope_level == 0 )   ||  ( (*token_iterator)->content != "endif" && scope_level == -1 ) ) );
+    ++token_iterator;//The token skiped was a else to run instead of an if, or it was the endif in case the if didn`t had an else.
+
+    #ifdef DEBUGGING2
+    cout << "skip_block: When exiting the function the current token is   " << (*token_iterator)->content << "      From type        " << (*token_iterator)->type << endl;
+    #endif
+    return;
+}
 /*
  *  @brief
  *  @param Type pointer ifstream that point to myfile file.
@@ -327,15 +352,7 @@ void Analizer_ACL::lexer(){
                 ++scope_iterator;
             }else{
                 //If case the condition wasent met, skip (the if block) until find endif or else. If get END token it is a ERROR!!
-                //skip_block();
-                do{
-                    ++token_iterator;
-                    if((*token_iterator)->type == "END"){
-                        cout << "SKIPING IF BLOCK ERROR: coudn`t find the end of if block\n";
-                        break;
-                    }
-                }while( (*token_iterator)->content != "else" && (*token_iterator)->content != "endif" );
-                ++token_iterator;//The token skiped was a else to run instead of an if, or it was the endif in case the if didn`t had an else.
+                skip_block();
             }
                 
         }
@@ -369,7 +386,9 @@ void Analizer_ACL::lexer(){
             if( ! eat_tokens_if_match({ "NEW LINE" }) ){
                 cout << "ERROR: EXPECTING NEW LINE TOKEN!!!!!!!" << endl;
             }
-
+            #ifdef DEBUGGING
+            cout << "_println case: Printing message   " << message << endl;
+            #endif
             cout << message << endl;
         }
         else if( eat_tokens_if_match({ "_print", "WHITE SPACE", "STRING" })){ 
