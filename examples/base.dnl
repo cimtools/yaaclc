@@ -9,7 +9,7 @@ if glob[1] > glob[2]
     if glob[3] = 3
         println "print 1" "print 2" "print 3" "print 4"
     endif
-    delay 1000000
+    delay 100
     println "print a"
     println "print s"
     println "print d"

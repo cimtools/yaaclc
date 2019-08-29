@@ -440,9 +440,9 @@ void Analizer_ACL::lexer(){
         else if(eat_tokens_if_match({ "_delay", "WHITE SPACE", "NUMBER", "NEW LINE"})){
             
             string time_delay = get_relative_token_content(-2);
-            int time_delay_converted = atoi(time_delay.c_str());
+            int time_delay_converted = atoi(time_delay.c_str()) * 10000;
             cout<<"o valor de time delay eh  "<<time_delay<<endl;
-            usleep(atoi(time_delay.c_str()));
+            usleep(time_delay_converted);
             cout<<"testando delay"<<endl;
         }
         // else if( eat_tokens_if_match( { "FIRST TOKEN TYPE", "_token content" } )){
